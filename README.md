@@ -1,6 +1,6 @@
 # DISCORD-PLAYER BOT 
 [![RUN ON REPL](https://repl.it/badge/github/plibither8/2048.cpp)]()
-[![wanna support me](https://codebard.com/wp-content/uploads/patreon-content-button-1.png)]()
+[![wanna support me](https://codebard.com/wp-content/uploads/patreon-content-button-1.png)](https://www.patreon.com/AndrewTYD)
 - make sure to do all the below npm install 
 ```
 npm install ffmpeg
