@@ -1,6 +1,7 @@
 const discord = require('discord.js')
 const client = new discord.Client()
 const keeponline = require('./keeponline.js')
+const fs = require('fs')
 const chalk = require('chalk')
 
 const dotenv = require('./other packages.js')
@@ -9,12 +10,13 @@ settings = {
         prefix: "!",
         token: process.env.BOT_TOKEN
 }
-
+client.settings = settings
 const { Player } = require('discord-player')
 
 const player = new Player(client);
 client.player = player
-
+client.commands = new discord.Collection()
+client.aliases = new discord.Collection()
 /* client.player.on("trackStart", (message, track)  => {
 message.channel.send(`NOW PLAYING ${track.title}...`)
 })
@@ -71,6 +73,11 @@ client.player
 
 
 client.on('ready', () => {
+client.user.setStatus("STREAMING")
+client.user.setActivity(`Servers : ${client.guilds.cache.size} | Users : ${client.users.cache.size}`, {
+        type: "STREAMING",
+        url: "https://minercord.xyz"
+})
 console.log(`
 ${chalk.greenBright(`BOT IS ONLINE AND READY`)}
 ${chalk.blueBright(`BOT PREFIX:${settings.prefix}`)}
@@ -83,12 +90,13 @@ client.on('message', async message => {
         .setColor('RANDOM')
         .setTimestamp()
 
-        if (cmd === "play") {
+         if (cmd === "play") {
+                if (!args[0]) return message.channel.send(`PLEASE DO \`\`${settings.prefix}play <song name or url>\`\``)
                 client.player.play(message, args[0], message.author)
         } else if (cmd === "p") {
-            if (!args[0]) return message.channel.send(`PLEASE DO \`\`${settings.prefix}play <song name or url>\`\``)
+            if (!args[0]) return message.channel.send(`PLEASE DO \`\`${settings.prefix}p <song name or url>\`\``)
                 client.player.play(message, args[0], message.author)     
-        }
+        } 
         if (cmd === "pause") {
                 client.player.pause(message)
 
@@ -97,7 +105,7 @@ client.on('message', async message => {
                 client.player.skip(message)
         }
         if (cmd === "resume") {
-                client.player.resume(messsage)
+                client.player.resume(message)
         }
         if (cmd === "stop") {
                 client.player.stop(message)
@@ -111,7 +119,10 @@ client.on('message', async message => {
                 client.player.stop(message)
         }
         if (cmd === "loop") {
-                if (!args[0]) return message.channel.send(`PLEASE DO \`\`${settings.prefix}loop <true | false>\`\``)
+                if (!args[0]) return message.channel.send(`PLEASE DO \`\`${settings.prefix}loop <enable | diable>\`\``)
+                client.player.setRepeatMode(message, args[0]) 
+        } else if (cmd === "repeat") {
+                if (!args[0]) return message.channel.send(`PLEASE DO \`\`${settings.prefix}repeat <enable | diable>\`\``)
                 client.player.setRepeatMode(message, args[0]) 
         }
         if (cmd === "vol") {
@@ -123,6 +134,11 @@ client.on('message', async message => {
         if (cmd === "queue") {
                 client.player.getQueue(message)
 
+        }
+        if (cmd === "np") {
+                client.player.nowPlaying(message)
+        } else if (cmd === "nowplaying") {
+                client.player.nowPlaying(message)
         }
         if (cmd === "remove") {
                  if (!args[0]) return message.channel.send(`PLEASE DO \`\`${settings.prefix}remove <track number>\`\``)
@@ -137,7 +153,64 @@ client.on('message', async message => {
                 client.player.clearQueue(message)
 
         }
+        const helpcmd = require('./cmds/help/help.js')
+       // if (cmd === helpcmd.name) {
+                
+         //       message.channel.send(helpcmd.message)
+
+        //}
+        let modules = ['help', "music"]
+modules.forEach(function(module) {
+        fs.readdir(`./cmds/${module}`, function(err, files) {
+    if (err)
+      return new Error(
+        "Missing Folder Of Commands! Example : cmds/<Folder>/Command.js"
+      );
+    files.forEach(function(file) {
+      if (!file.endsWith(".js")) return;
+      let command = require(`./cmds/${module}/${file}`);
+      console.log(`${command.name} Command Has Been Loaded - ✅`);
+      if (command.name) client.commands.set(command.name, command);
+      if (!command.aliases) return client.aliases.set(null, command.name)
+       else if (command.aliases) {
+        command.aliases.forEach(alias =>
+          client.aliases.set(alias, command.name)
+        );
+      } 
+    
+    });
+  });
+});
 })
+client.on("message", async message => {
+ if (message.channel.type === "dm") return;
+  if (message.author.bot) return;
+  if (!message.guild) return;
+  if (!message.member)
+    message.member = await message.guild.fetchMember(message);
+
+  if (!message.content.startsWith(client.settings.preifx)) return;
+ const args = message.content.slice(settings.prefix.length).trim().split(/ +/g);
+        const cmd = args.shift().toLowerCase()
+  if (cmd.length === 0) return;
+
+  let command =
+    client.commands.get(cmd) || client.commands.get(client.aliases.get(cmd));
+
+  if (!command) return;
+
+  if (command) {
+    if (!message.guild.me.hasPermission(["VIEW_CHANNEL", "SEND_MESSAGES"]))
+      return message.author.send(
+        "I Don't Have Enough Permission To Use This Or Any Of My Commands | Require : view channels and send messages"
+      );
+    command.run(client, message, args);
+  }
+  console.log(
+    `User : ${message.author.tag} (${message.author.id}) Server : ${message.guild.name} (${message.guild.id}) Command : ${command.name}`
+  );
+});
+
 /*
 *base command in the main file
 if (cmd === "") {

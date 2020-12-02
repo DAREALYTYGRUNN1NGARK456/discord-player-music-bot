@@ -1,0 +1,14 @@
+const discord = require('discord.js')
+const { MessageEmbed } = discord
+module.exports = {
+        name: "play",
+        aliases: ["p"],
+        run: async (message, client, args) => { 
+                let track = args[0]
+                let msg = `Now playing ${track}...`
+                
+               if (!args[0]) return message.channel.send(`PLEASE DO \`\`${client.settings.prefix}play <song name or url>\`\``)
+                client.player.play(msg, args[0], message.author)
+        }
+
+}
