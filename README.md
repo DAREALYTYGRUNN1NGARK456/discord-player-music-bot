@@ -1,5 +1,5 @@
 # DISCORD-PLAYER BOT 
-[![RUN ON REPL](https://repl.it/badge/github/plibither8/2048.cpp)]()
+[![RUN ON REPL](https://repl.it/badge/github/plibither8/2048.cpp)](https://repl.it/@DAREALYTYGRUNN1/discord-player-music-bot-test-1)
 [![wanna support me](https://codebard.com/wp-content/uploads/patreon-content-button-1.png)](https://www.patreon.com/AndrewTYD)
 - make sure to do all the below npm install 
 ```
