@@ -15,6 +15,7 @@ const { Player } = require('discord-player')
 
 const player = new Player(client);
 client.player = player
+client.db = require("quick.db")
 client.commands = new discord.Collection()
 client.aliases = new discord.Collection()
 /* client.player.on("trackStart", (message, track)  => {
@@ -47,9 +48,13 @@ client.player
 .on('noResults', (message, query) => message.channel.send(`No results found on YouTube for ${query}!`))
  
 // Send a message when the music is stopped
-.on('queueEnd', (message, queue) => message.channel.send('Music stopped as there is no more music in the queue!'))
-.on('channelEmpty', (message, queue) => message.channel.send('Music stopped as there is no more member in the voice channel!'))
-.on('botDisconnect', (message, queue) => message.channel.send('Music stopped as I have been disconnected from the channel!'))
+.on('queueEnd', (message, queue) =>  message.channel.send('Music stopped as there is no more music in the queue!')
+
+)
+.on('channelEmpty',  (message, queue) => message.channel.send('Music stopped as there is no more member in the voice channel!') 
+)
+.on('botDisconnect',  (message, queue) =>  message.channel.send('Music stopped as I have been disconnected from the channel!')
+)
  
 // Error handling
 .on('error', (error, message) => {
@@ -126,9 +131,11 @@ client.on('message', async message => {
                 client.player.setRepeatMode(message, args[0]) 
         }
         if (cmd === "vol") {
-                if (!args[0]) return message.channel.send(`PLEASE DO \`\`${settings.prefix}vol <0 - 400>\`\``)
+                let currentvol = await client.db.fetch(`Vol_${message.guild.id}`)
+                if (!args[0]) return message.channel.send(`CURRENT VOL IS:\`\`${currentvol}\`\` TO CHANGE IT PLEASE DO \`\`${settings.prefix}vol <0 - 400>\`\``)
                 if (args[0] > 400) return message.channel.send(`SORRY YOU CAN ONLY DO 0 - 400`)
                 client.player.setVolume(message, args[0])
+                client.db.set(`Vol_${message.guild.id}`, args[0])
 
         }
         if (cmd === "queue") {
@@ -153,7 +160,35 @@ client.on('message', async message => {
                 client.player.clearQueue(message)
 
         }
-        const helpcmd = require('./cmds/help/help.js')
+        if (cmd === "help") {
+                
+                const help = new MessageEmbed()
+                .setTitle('**HELP**')
+                .setDescription(`
+[prefix]play
+[prefix]p (same as play)
+[prefix]skip
+[prefix]queue
+[prefix]vol (when show the volume level it will be the same as the last use of the command)
+[prefix]stop
+[prefix]die (same as stop)
+[prefix]fuckoff (same as stop)
+[prefix]repeat (WARNING IT WILL REPEAT ONLY ONE TRACK)
+[prefix]clearqueue
+[prefix]cq (same as clearqueue)
+[prefix]remove 
+[prefix]nowplaying 
+[prefix]np (same as nowplaying)
+[prefix]pause
+[prefix]resume
+[prefix]loop (same as repeat)
+                `)
+                .setFooter(`REQUESTED BY ${message.author.username}`)
+                .setTimestamp()
+                .setColor('RANDOM')
+                message.channel.send(help)
+        }
+       // const helpcmd = require('./cmds/help/help.js')
        // if (cmd === helpcmd.name) {
                 
          //       message.channel.send(helpcmd.message)
